@@ -161,11 +161,13 @@ num_class
 
 import tensorflow as tf
 model = tf.keras.Sequential([
-    tf.keras.layers.Embedding(input_dim=3000, output_dim=16),
-    tf.keras.layers.LSTM(64),
+    tf.keras.layers.Embedding(input_dim=3000, output_dim=32),
+    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128, dropout=0.2)),
     tf.keras.layers.Dense(128, activation='relu'),
     tf.keras.layers.Dropout(0.3),
-    tf.keras.layers.Dense(254, activation='relu'),
+    tf.keras.layers.Dense(254, kernel_regularizer=tf.keras.regularizers.l2(0.001), activation='relu'),
+    tf.keras.layers.Dropout(0.5),
+    tf.keras.layers.Dense(64, activation='relu'),
     tf.keras.layers.Dropout(0.5),
     tf.keras.layers.Dense(num_class, activation='softmax')
 ])
@@ -183,7 +185,7 @@ model.compile(loss = "categorical_crossentropy", optimizer=opt_adam, metrics=['a
 from timeit import default_timer as timer
 
 EarlyStop = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
-                              patience=10, mode='auto')
+                              patience=20, mode='auto')
 
 class myCallback(tf.keras.callbacks.Callback):
   def __init__(self, logs={}):
