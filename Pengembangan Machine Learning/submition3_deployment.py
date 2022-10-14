@@ -9,7 +9,7 @@
 # 
 # > Dataset: https://www.kaggle.com/datasets/ananthu017/emotion-detection-fer
 
-# In[2]:
+# In[1]:
 
 
 # %tensorflow_version 2.x
@@ -17,7 +17,7 @@ import tensorflow as tf
 print(tf.__version__)
 
 
-# In[3]:
+# In[2]:
 
 
 # cek penggunaan GPU
@@ -26,6 +26,14 @@ if device_name != '/device:GPU:0':
   print('GPU device not found')
 else:
   print('Found GPU at: {}'.format(device_name))
+
+
+# In[ ]:
+
+
+# physical_devices = tf.config.experimental.list_physical_devices('GPU')
+# if len(physical_devices) > 0:
+#     tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 
 # # Data Preparation
@@ -74,14 +82,14 @@ get_ipython().system('ls datasets')
 
 # ### Download Datasets (kaggle notebook)
 
-# In[4]:
+# In[3]:
 
 
 # !rm -rf datasets
 get_ipython().system('ls -al')
 
 
-# In[5]:
+# In[4]:
 
 
 get_ipython().system('mkdir ./datasets')
@@ -89,7 +97,7 @@ get_ipython().system('cp -r ../input/emotion-detection-fer/* ./datasets')
 get_ipython().system('ls -al datasets')
 
 
-# In[6]:
+# In[5]:
 
 
 get_ipython().system('chmod 777 ./datasets/train')
@@ -100,7 +108,7 @@ get_ipython().system('ls datasets/test')
 
 # # Data Cleansing
 
-# In[7]:
+# In[6]:
 
 
 import os
@@ -111,7 +119,7 @@ VALIDATION_DIR = 'datasets/test/'
 os.listdir(TRAINING_DIR), os.listdir(VALIDATION_DIR)
 
 
-# In[8]:
+# In[7]:
 
 
 ## cek jumlah dataset
@@ -152,7 +160,7 @@ print(cek_data()[0])
 print(cek_data()[1])
 
 
-# In[9]:
+# In[8]:
 
 
 ## hapus folder disgusted
@@ -165,7 +173,7 @@ print(cek_data()[0])
 print(cek_data()[1])
 
 
-# In[10]:
+# In[9]:
 
 
 ## pindahkan train test gambar agar sesuai kriteria 80/20
@@ -185,22 +193,22 @@ for i, dir in enumerate(jum_data()[2]):
   
   if source==None:
     continue
-  print("\n"+source+" ====> "+dest)
   files = os.listdir(source)
 
   for file_name in random.sample(files, abs(cek_data()[1][i])):
     shutil.move(os.path.join(source, file_name), os.path.join(dest, "mov_"+file_name))
-    print(file_name+" moved")
+    print(f"\r{file_name} moved", end=" ")
+  print("\n"+source+" ==> "+dest+" ✓✓")
 
 
-# In[11]:
+# In[10]:
 
 
 print(cek_data()[0])
 print(cek_data()[1])
 
 
-# In[12]:
+# In[11]:
 
 
 ## Undersampling class happy
@@ -222,14 +230,14 @@ for i, file_name in enumerate(random.sample(os.listdir(val_dir), val_happy)):
 print(str(val_happy)+" files removed ")
 
 
-# In[13]:
+# In[12]:
 
 
 print(cek_data()[0])
 print(cek_data()[1])
 
 
-# In[14]:
+# In[13]:
 
 
 ## Undersampling class sad, happy, dan neutral
@@ -250,14 +258,14 @@ for u_dir in ['happy', 'neutral', 'sad']:
   print(f"{i+1} val {u_dir} files removed ")
 
 
-# In[15]:
+# In[14]:
 
 
 print(cek_data()[0])
 print(cek_data()[1])
 
 
-# In[16]:
+# In[15]:
 
 
 source = os.path.join(TRAINING_DIR, 'sad')
@@ -284,8 +292,8 @@ get_ipython().system('ls -al ./datasets/backup')
 
 
 ## hapus class surprised dan fearful
-shutil.rmtree(os.path.join(TRAINING_DIR, 'surprised') )
-shutil.rmtree(os.path.join(VALIDATION_DIR, 'surprised'))
+shutil.rmtree(os.path.join(TRAINING_DIR, 'angry') )
+shutil.rmtree(os.path.join(VALIDATION_DIR, 'angry'))
 
 shutil.rmtree(os.path.join(TRAINING_DIR, 'neutral'))
 shutil.rmtree(os.path.join(VALIDATION_DIR, 'neutral'))
@@ -297,47 +305,9 @@ print(cek_data()[0])
 print(cek_data()[1])
 
 
-# In[19]:
-
-
-## Undersampling class angry
-train_sampling = (sum(jum_data()[0]) / len(jum_data()[0]))*0.25
-val_sampling = (sum(jum_data()[1]) / len(jum_data()[1]))*0.25
-
-for u_dir in ['angry', 'sad', 'happy']:
-  train_dir = os.path.join(TRAINING_DIR, u_dir)
-  val_dir = os.path.join(VALIDATION_DIR, u_dir)
-  for i, file_name in enumerate(random.sample(os.listdir(train_dir), round(train_sampling))):
-    os.remove(os.path.join(train_dir, file_name))
-    continue
-  print(f"{round(train_sampling)} train {u_dir} files removed ")
-  for i, file_name in enumerate(random.sample(os.listdir(val_dir), round(val_sampling))):
-    os.remove(os.path.join(val_dir, file_name))
-    continue
-  print(f"{round(val_sampling)} val {u_dir} files removed ")
-
-print(cek_data()[0])
-print(cek_data()[1])
-
-
-# In[20]:
-
-
-source = os.path.join(TRAINING_DIR, 'happy')
-dest = os.path.join(VALIDATION_DIR, 'happy')
-file = random.sample(os.listdir(source), 1)[0]
-
-shutil.move(os.path.join(source, file), os.path.join(dest, "mov_"+file))
-# print(os.path.join(source, file))
-
-
-print(cek_data()[0])
-print(cek_data()[1])
-
-
 # # Data Preprocessing
 
-# In[21]:
+# In[19]:
 
 
 ## Augmentasi data
@@ -376,19 +346,20 @@ validation_generator = validation_datagen.flow_from_directory(
 )
 
 
-# In[22]:
+# In[20]:
 
 
 train_generator.class_indices
 
 
-# In[23]:
+# In[21]:
 
 
 ## Plot gambar
 
 import numpy as np
 import matplotlib.pylab as plt
+import random 
 
 plt.figure(figsize=[15,15])
 for i in range(12):
@@ -404,7 +375,7 @@ plt.show()
 
 # # Training
 
-# In[38]:
+# In[22]:
 
 
 # conv_base = tf.keras.applications.ResNet152V2(include_top=False, input_shape=(img_size, img_size, 3), weights='imagenet')
@@ -413,11 +384,11 @@ conv_base = tf.keras.applications.InceptionResNetV2(include_top=False, input_sha
 conv_base.summary()
 
 
-# In[49]:
+# In[23]:
 
 
 ## Frezze sebagian layer
-# for layer in conv_base.layers[:-1]:
+# for layer in conv_base.layers[:-2]:
 #   layer.trainable = False
 
 
@@ -429,20 +400,20 @@ model = tf.keras.models.Sequential([
 
 #   tf.keras.layers.Conv2D(512,(3,3), padding="same", activation="relu"),
   tf.keras.layers.Conv2D(512,(2,2), padding="same", activation="relu"),
-  tf.keras.layers.Dropout(0.5),
+  tf.keras.layers.BatchNormalization(),
   tf.keras.layers.MaxPooling2D(2,2),
   
   tf.keras.layers.Flatten(),
   
 #   tf.keras.layers.Dense(512, activation="relu", use_bias=True, kernel_regularizer=tf.keras.regularizers.l2(l=0.01)),
-  tf.keras.layers.Dense(512, activation="relu", use_bias=True),
+  tf.keras.layers.Dense(265, activation="relu", use_bias=True),
   tf.keras.layers.Dropout(0.5),
     
   tf.keras.layers.Dense(128, activation="relu", use_bias=True),
   tf.keras.layers.Dropout(0.5),
 
-  # tf.keras.layers.Dense(128, activation="relu", use_bias=True),
-  # tf.keras.layers.Dropout(0.2),
+  tf.keras.layers.Dense(64, activation="relu", use_bias=True),
+  tf.keras.layers.Dropout(0.5),
   
   tf.keras.layers.Dense(num_cls, activation="softmax")
 ])
@@ -450,7 +421,7 @@ model = tf.keras.models.Sequential([
 model.summary()
 
 
-# In[50]:
+# In[24]:
 
 
 ## define callbacks
@@ -466,14 +437,14 @@ early_stopping = tf.keras.callbacks.EarlyStopping(
 callbacks = [early_stopping]
 
 
-# In[51]:
+# In[25]:
 
 
 ## compile model
 epochs = 100
-lr = 0.01
+lr = 0.001
 decay_rate = lr / epochs
-momentum=0.6
+momentum=0.9
 
 opt_adam = tf.optimizers.Adam(learning_rate=lr)
 opt_rms = tf.optimizers.RMSprop(learning_rate=lr)
@@ -504,7 +475,7 @@ with tf.device(device_name):
   )
 
 
-# In[52]:
+# In[27]:
 
 
 ## model evaluate
@@ -513,9 +484,15 @@ loss, acc = model.evaluate(validation_generator)
 print(f"valid accuracy: {acc} \nvalid loss: {loss}")
 
 
+# In[ ]:
+
+
+
+
+
 # # Evaluation Model
 
-# In[53]:
+# In[28]:
 
 
 ## Plot accuracy dan Loss
@@ -549,7 +526,7 @@ plt.grid(linestyle='--', linewidth=1, alpha=0.5)
 plt.show()
 
 
-# In[54]:
+# In[29]:
 
 
 ## Plot Confusion Matrix dan Classification Report
@@ -578,7 +555,7 @@ print(classification_report(validation_generator.classes, y_pred, target_names=l
 
 # # Deployment
 
-# In[55]:
+# In[30]:
 
 
 ## save model keras *.h5
@@ -590,7 +567,7 @@ model.save_weights("model/model_weights.h5")
 model.save("model/model.h5")
 
 
-# In[56]:
+# In[31]:
 
 
 import warnings
